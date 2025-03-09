@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { CalendarIcon, ArrowPathIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { useMistakeStore, Mistake, Subject } from '@/store/mistakeStore';
 import ReviewPlan from '@/components/review/ReviewPlan';
@@ -143,12 +142,14 @@ export default function ReviewPage() {
               <ReviewPlan 
                 mistakes={reviewMistakes} 
                 isGenerating={isGenerating} 
+                onGeneratePlan={handleGeneratePlan}
               />
             </div>
           ) : (
             <ReviewSandbox 
               mistakes={reviewMistakes} 
               selectedSubject={selectedSubject} 
+              onSubjectChange={setSelectedSubject}
             />
           )}
         </div>

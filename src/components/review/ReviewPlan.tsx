@@ -9,6 +9,7 @@ import { Mistake } from '@/store/mistakeStore';
 interface ReviewPlanProps {
   mistakes: Mistake[];
   isGenerating: boolean;
+  onGeneratePlan: () => void;
 }
 
 interface PlanDay {
@@ -16,7 +17,7 @@ interface PlanDay {
   mistakes: Mistake[];
 }
 
-export default function ReviewPlan({ mistakes, isGenerating }: ReviewPlanProps) {
+export default function ReviewPlan({ mistakes, isGenerating, onGeneratePlan }: ReviewPlanProps) {
   const [plan, setPlan] = useState<PlanDay[]>([]);
 
   useEffect(() => {
@@ -74,12 +75,13 @@ export default function ReviewPlan({ mistakes, isGenerating }: ReviewPlanProps) 
           添加一些错题后再生成复习计划
         </p>
         <div className="mt-6">
-          <Link
-            href="/add"
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          <button
+            onClick={onGeneratePlan}
+            disabled={isGenerating}
+            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:bg-indigo-400"
           >
-            添加错题
-          </Link>
+            {isGenerating ? '生成中...' : '生成复习计划'}
+          </button>
         </div>
       </div>
     );

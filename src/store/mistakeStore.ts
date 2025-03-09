@@ -6,6 +6,7 @@ export type Subject = '数学' | '语文' | '英语' | '物理' | '化学' | '�
 export interface Mistake {
   id: string;
   title: string;
+  content: string; // 题目详情
   imageUrl: string;
   subject: Subject;
   tags: string[];

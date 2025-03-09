@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { PlusCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { ArrowRightIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import QuickAddEntry from '@/components/home/QuickAddEntry';
 import RecentMistakesList from '@/components/home/RecentMistakesList';

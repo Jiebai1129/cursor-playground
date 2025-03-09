@@ -26,10 +26,13 @@ export default function AddMistakePage() {
     if (!imageUrl) {
       setUploadedImage(null);
       setRecognizedText('');
+      localStorage.removeItem('uploadedImage');
+      localStorage.removeItem('recognizedText');
       return;
     }
     
     setUploadedImage(imageUrl);
+    localStorage.setItem('uploadedImage', imageUrl);
     performOcrRecognition();
   };
 
@@ -44,7 +47,9 @@ export default function AddMistakePage() {
     setTimeout(() => {
       // 从模拟文本中随机选择一个，以模拟不同的识别结果
       const randomIndex = (newAttemptCount - 1) % mockOcrTexts.length;
-      setRecognizedText(mockOcrTexts[randomIndex]);
+      const text = mockOcrTexts[randomIndex];
+      setRecognizedText(text);
+      localStorage.setItem('recognizedText', text);
       setIsRecognizing(false);
     }, 1500);
   };
@@ -93,8 +98,6 @@ export default function AddMistakePage() {
             错题信息
           </h2>
           <AddMistakeForm 
-            recognizedText={recognizedText} 
-            imageUrl={uploadedImage}
             onCancel={handleCancel}
           />
         </div>

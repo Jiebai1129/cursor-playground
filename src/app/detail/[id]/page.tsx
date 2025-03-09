@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useMistakeStore, Mistake } from '@/store/mistakeStore';
@@ -9,18 +9,19 @@ import CorrectionTimeline from '@/components/detail/CorrectionTimeline';
 import RelatedMistakes from '@/components/detail/RelatedMistakes';
 import NotFound from '@/components/NotFound';
 
-export default function MistakeDetailPage({ params }: { params: { id: string } }) {
+export default function MistakeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const getMistakeById = useMistakeStore((state) => state.getMistakeById);
   const [mistake, setMistake] = useState<Mistake | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const resolvedParams = use(params);
 
   useEffect(() => {
     // 在客户端加载数据
-    const mistakeData = getMistakeById(params.id);
+    const mistakeData = getMistakeById(resolvedParams.id);
     setMistake(mistakeData || null);
     setIsLoading(false);
-  }, [getMistakeById, params.id]);
+  }, [getMistakeById, resolvedParams.id]);
 
   const handleGoBack = () => {
     router.back();

@@ -1,51 +1,68 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { TagIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useMistakeStore, Subject } from '@/store/mistakeStore';
 
 interface AddMistakeFormProps {
-  recognizedText: string;
-  imageUrl: string | null;
   onCancel: () => void;
 }
 
 interface FormData {
   title: string;
   subject: Subject;
+  imageUrl: string;
+  content: string;
   notes: string;
   solution?: string;
   tags: string[];
 }
 
-export default function AddMistakeForm({ recognizedText, imageUrl, onCancel }: AddMistakeFormProps) {
+export default function AddMistakeForm({ onCancel }: AddMistakeFormProps) {
   const router = useRouter();
   const addMistake = useMistakeStore((state) => state.addMistake);
   const [tagInput, setTagInput] = useState('');
   
-  const { register, handleSubmit, control, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
+  // 从父组件获取状态
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [recognizedText, setRecognizedText] = useState<string>('');
+  
+  // 尝试从 localStorage 获取值
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedImage = localStorage.getItem('uploadedImage');
+      const storedText = localStorage.getItem('recognizedText');
+      
+      if (storedImage) setImageUrl(storedImage);
+      if (storedText) setRecognizedText(storedText);
+    }
+  }, []);
+
+  const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
     defaultValues: {
       title: '',
-      subject: '数学',
-      notes: recognizedText,
-      solution: '',
+      subject: 'MATH' as Subject,
+      imageUrl: imageUrl || '',
+      content: '',
+      notes: recognizedText || '',
+      solution: undefined,
       tags: [],
     }
   });
 
-  const watchedTags = watch('tags', []);
+  const tags = watch('tags');
 
   const handleAddTag = () => {
-    if (tagInput.trim() && !watchedTags.includes(tagInput.trim())) {
-      setValue('tags', [...watchedTags, tagInput.trim()]);
+    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+      setValue('tags', [...tags, tagInput.trim()]);
       setTagInput('');
     }
   };
 
   const handleRemoveTag = (tag: string) => {
-    setValue('tags', watchedTags.filter((t) => t !== tag));
+    setValue('tags', tags.filter(t => t !== tag));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -56,26 +73,17 @@ export default function AddMistakeForm({ recognizedText, imageUrl, onCancel }: A
   };
 
   const onSubmit = async (data: FormData) => {
-    if (!imageUrl) {
-      alert('请先上传错题图片');
-      return;
-    }
-
     try {
-      // 添加错题到存储
-      addMistake({
-        title: data.title,
-        subject: data.subject,
-        imageUrl: imageUrl,
-        notes: data.notes,
-        solution: data.solution,
-        tags: data.tags,
-      });
-
-      // 导航到首页
+      const newMistake = {
+        ...data,
+        content: data.content,
+        imageUrl: imageUrl || data.imageUrl || '',
+        solution: data.solution || '',
+      };
+      await addMistake(newMistake);
       router.push('/');
     } catch (error) {
-      console.error('添加错题失败', error);
+      console.error('Failed to add mistake:', error);
     }
   };
 
@@ -147,9 +155,9 @@ export default function AddMistakeForm({ recognizedText, imageUrl, onCancel }: A
           </button>
         </div>
         
-        {watchedTags.length > 0 && (
+        {tags.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
-            {watchedTags.map((tag) => (
+            {tags.map((tag) => (
               <span
                 key={tag}
                 className="inline-flex items-center rounded-full bg-indigo-100 py-0.5 pl-2.5 pr-1 text-sm font-medium text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200"

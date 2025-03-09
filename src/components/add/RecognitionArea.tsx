@@ -1,11 +1,9 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import Image from 'next/image';
-import { MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 
 interface RecognitionAreaProps {
-  imageUrl: string;
+  imageUrl: string | null;
   recognizedText: string;
   isRecognizing: boolean;
   onRecognizeRequest: () => void;
@@ -14,141 +12,67 @@ interface RecognitionAreaProps {
 export default function RecognitionArea({ 
   imageUrl, 
   recognizedText, 
-  isRecognizing,
+  isRecognizing, 
   onRecognizeRequest 
 }: RecognitionAreaProps) {
-  const [selectedArea, setSelectedArea] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
-  const [isSelecting, setIsSelecting] = useState(false);
-  const [startPoint, setStartPoint] = useState<{ x: number; y: number } | null>(null);
-  const imageContainerRef = useRef<HTMLDivElement>(null);
-
-  const handleRecognizeAgain = () => {
-    // 触发父组件的识别请求
-    onRecognizeRequest();
-  };
-
-  const handleStartSelection = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageContainerRef.current) return;
-    
-    const rect = imageContainerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
-    setStartPoint({ x, y });
-    setIsSelecting(true);
-    setSelectedArea(null);
-  };
-
-  const handleMoveSelection = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isSelecting || !startPoint || !imageContainerRef.current) return;
-    
-    const rect = imageContainerRef.current.getBoundingClientRect();
-    const currentX = ((e.clientX - rect.left) / rect.width) * 100;
-    const currentY = ((e.clientY - rect.top) / rect.height) * 100;
-    
-    const width = Math.abs(currentX - startPoint.x);
-    const height = Math.abs(currentY - startPoint.y);
-    const x = Math.min(currentX, startPoint.x);
-    const y = Math.min(currentY, startPoint.y);
-    
-    setSelectedArea({ x, y, width, height });
-  };
-
-  const handleEndSelection = () => {
-    setIsSelecting(false);
-    if (selectedArea && (selectedArea.width < 5 || selectedArea.height < 5)) {
-      // 如果选择的区域太小，则取消选择
-      setSelectedArea(null);
-    }
-  };
-
-  const handleRecognizeSelectedArea = () => {
-    // 如果有选定区域，则识别该区域
-    // 否则识别整个图片
-    onRecognizeRequest();
-  };
+  if (!imageUrl) {
+    return null;
+  }
 
   return (
     <div>
-      <div className="mb-4">
-        {isRecognizing ? (
-          <div className="flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <ArrowPathIcon className="h-5 w-5 text-indigo-500 animate-spin mr-2" />
-            <span className="text-sm text-gray-600 dark:text-gray-300">正在识别文本...</span>
-          </div>
-        ) : recognizedText ? (
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">识别结果</h3>
-              <button
-                type="button"
-                onClick={handleRecognizeAgain}
-                className="inline-flex items-center text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500"
-              >
-                <ArrowPathIcon className="h-3 w-3 mr-1" />
-                重新识别
-              </button>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
-              {recognizedText}
-            </p>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-500 dark:text-gray-400">点击图片区域进行识别</span>
-          </div>
-        )}
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          识别结果
+        </h3>
+        <button
+          type="button"
+          onClick={onRecognizeRequest}
+          disabled={isRecognizing}
+          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isRecognizing ? (
+            <>
+              <ArrowPathIcon className="h-4 w-4 mr-1 animate-spin" />
+              识别中...
+            </>
+          ) : (
+            <>
+              <ArrowPathIcon className="h-4 w-4 mr-1" />
+              重新识别
+            </>
+          )}
+        </button>
       </div>
 
-      <div className="relative border rounded-lg overflow-hidden">
-        <div 
-          ref={imageContainerRef}
-          className="aspect-w-16 aspect-h-9 cursor-crosshair"
-          onMouseDown={handleStartSelection}
-          onMouseMove={handleMoveSelection}
-          onMouseUp={handleEndSelection}
-          onMouseLeave={handleEndSelection}
-        >
-          <Image
-            src={imageUrl}
-            alt="Recognition area"
-            width={800}
-            height={450}
-            className="object-contain"
-          />
-          
-          {/* 选择区域覆盖层 */}
-          {selectedArea && (
-            <div
-              className="absolute border-2 border-indigo-500 bg-indigo-500/20"
-              style={{
-                left: `${selectedArea.x}%`,
-                top: `${selectedArea.y}%`,
-                width: `${selectedArea.width}%`,
-                height: `${selectedArea.height}%`,
-              }}
-            />
-          )}
+      {isRecognizing ? (
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
+          <div className="animate-pulse flex space-x-4">
+            <div className="flex-1 space-y-4 py-1">
+              <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4"></div>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-5/6"></div>
+              </div>
+            </div>
+          </div>
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+            正在识别图片内容...
+          </p>
         </div>
-        
-        <div className="absolute bottom-2 right-2">
-          <button
-            type="button"
-            onClick={handleRecognizeSelectedArea}
-            className="bg-white dark:bg-gray-800 rounded-full p-2 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
-            title="识别选中区域"
-          >
-            <MagnifyingGlassIcon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-          </button>
+      ) : recognizedText ? (
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+          <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
+            {recognizedText}
+          </p>
         </div>
-      </div>
-      
-      <div className="mt-4">
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          提示: 在图片上拖动鼠标可以选择特定区域进行精确识别
-        </p>
-      </div>
+      ) : (
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            点击&quot;重新识别&quot;按钮识别图片内容
+          </p>
+        </div>
+      )}
     </div>
   );
 } 

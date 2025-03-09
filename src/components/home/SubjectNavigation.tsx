@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useMistakeStore, Subject } from '@/store/mistakeStore';
 
 const subjects: { name: Subject; icon: string; color: string }[] = [
@@ -16,9 +15,8 @@ const subjects: { name: Subject; icon: string; color: string }[] = [
 ];
 
 export default function SubjectNavigation() {
-  const router = useRouter();
   const getMistakesBySubject = useMistakeStore((state) => state.getMistakesBySubject);
-  
+
   const handleSubjectClick = (subject: Subject) => {
     // 这里可以导航到特定学科的错题列表页面
     // 目前我们只是简单地打印数量
